@@ -1,5 +1,7 @@
 package com.example.demo.config;
 
+import com.example.demo.services.CustomUserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,16 +16,30 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-
+    @Autowired
+    private CustomUserService userService;
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-        auth.inMemoryAuthentication().withUser("Sanjana").password(passwordEncoder().encode("san@123")).authorities("USER","ADMIN"); //username & password
+        //in-memory authorization
+        auth.inMemoryAuthentication().withUser("Sanjana").password(passwordEncoder()
+                .encode("san@123"))
+                .authorities("USER","ADMIN"); //username & password
+
+        //database authorization
+        auth.userDetailsService(userService).passwordEncoder(passwordEncoder());
     }
     @Bean
     public PasswordEncoder passwordEncoder(){   //encode the password
         return new BCryptPasswordEncoder();
     }
+
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
